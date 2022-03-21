@@ -228,17 +228,20 @@ def _determine_neighboring_pockets(file_info):
 
 def _determine_pocket_neighbors(file_info):
     pdb_filename, pocket_filename, atom_indices, closest_surrounding_atoms_threshold = file_info
-    pdb = md.load(pdb_filename)
-    pdb_pockets = md.load(pocket_filename)
-    pdb_xyz = pdb.xyz[0]
-    pdb_pockets_xyz = pdb_pockets.xyz[0]
-    pocket_volume = 0
-    for pg in pdb_pockets_xyz:
-        diff = np.abs(pdb_xyz - pg)
-        dist = np.sqrt(np.einsum('ij,ij->i', diff, diff))
-        top_n_closest_atoms = dist.argsort()[:closest_surrounding_atoms_threshold]
-        if all([ix in atom_indices for ix in top_n_closest_atoms]):
-            pocket_volume += 1
+    try:
+        pdb = md.load(pdb_filename)
+        pdb_pockets = md.load(pocket_filename)
+        pdb_xyz = pdb.xyz[0]
+        pdb_pockets_xyz = pdb_pockets.xyz[0]
+        pocket_volume = 0
+        for pg in pdb_pockets_xyz:
+            diff = np.abs(pdb_xyz - pg)
+            dist = np.sqrt(np.einsum('ij,ij->i', diff, diff))
+            top_n_closest_atoms = dist.argsort()[:closest_surrounding_atoms_threshold]
+            if all([ix in atom_indices for ix in top_n_closest_atoms]):
+                pocket_volume += 1
+    except IndexError:
+        pocket_volume = 0
     return pocket_volume
 
 
